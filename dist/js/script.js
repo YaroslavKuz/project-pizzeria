@@ -95,6 +95,7 @@
       thisProduct.formInputs = thisProduct.form.querySelectorAll(select.all.formInputs);
       thisProduct.cartButton = thisProduct.element.querySelector(select.menuProduct.cartButton);
       thisProduct.priceElem = thisProduct.element.querySelector(select.menuProduct.priceElem);
+      thisProduct.imageWrapper = thisProduct.element.querySelector(select.menuProduct.imageWrapper);
     }
 
     initAccordion() {
@@ -176,55 +177,62 @@
             price += option.price; // додаємо ціну
           }
 
-          
           // 3. If not selected and default — subtract price
           if (!optionSelected && option.default) {
             price -= option.price; // віднімаємо ціну
           }
+
+          // 4. Show/hide images 
+          const image = thisProduct.imageWrapper.querySelector('.' + paramId + '-' + optionId);
+          if (image) {
+            if (optionSelected) {
+              image.classList.add(classNames.menuProduct.imageVisible);
+            } else {
+              image.classList.remove(classNames.menuProduct.imageVisible);
+            }
+
+          }
         }
 
+        // update calculated price in the HTML
+        thisProduct.priceElem.innerHTML = price;
 
       }
-
-      // update calculated price in the HTML
-      thisProduct.priceElem.innerHTML = price;
+    }
 
     }
 
+    const app = {
 
-  }
+      initData: function () {
+        const thisApp = this;
+        thisApp.data = dataSource;
+      },
 
-  const app = {
+      initMenu: function () {
+        const thisApp = this;
+        console.log('thisApp.data', thisApp.data);
 
-    initData: function () {
-      const thisApp = this;
-      thisApp.data = dataSource;
-    },
+        for (let productData in thisApp.data.products) {
+          new Product(productData, thisApp.data.products[productData]);
+        }
+      },
 
-    initMenu: function () {
-      const thisApp = this;
-      console.log('thisApp.data', thisApp.data);
+      init: function () {
+        const thisApp = this;
+        console.log('*** App starting ***');
+        console.log('thisApp:', thisApp);
+        console.log('classNames:', classNames);
+        console.log('settings:', settings);
+        console.log('templates:', templates);
 
-      for (let productData in thisApp.data.products) {
-        new Product(productData, thisApp.data.products[productData]);
-      }
-    },
-
-    init: function () {
-      const thisApp = this;
-      console.log('*** App starting ***');
-      console.log('thisApp:', thisApp);
-      console.log('classNames:', classNames);
-      console.log('settings:', settings);
-      console.log('templates:', templates);
-
-      thisApp.initData();
-      thisApp.initMenu();
+        thisApp.initData();
+        thisApp.initMenu();
 
 
-    },
-  };
+      },
+    };
 
   app.init();
-}
+  }
 
