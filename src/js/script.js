@@ -64,11 +64,21 @@
       thisProduct.getElements();
       thisProduct.initAccordion();
       thisProduct.initOrderForm();
+      thisProduct.initAmountWidget();
       thisProduct.processOrder();
       console.log('new Product:', thisProduct);
     }
+    initAmountWidget() {
+      const thisProduct = this;
 
+      thisProduct.amountWidget = new amountWidget(thisProduct.amountWidgetElem);
+      thisProduct.amountWidgetElem.addEventListener('updated', function () {
+        console.log('Amount widget updated!');
 
+        // Викликаємо обробку замовлення при зміні кількості
+        thisProduct.processOrder();
+      })
+    }
 
     renderInMenu() {
       const thisProduct = this;
@@ -96,6 +106,7 @@
       thisProduct.cartButton = thisProduct.element.querySelector(select.menuProduct.cartButton);
       thisProduct.priceElem = thisProduct.element.querySelector(select.menuProduct.priceElem);
       thisProduct.imageWrapper = thisProduct.element.querySelector(select.menuProduct.imageWrapper);
+      thisProduct.amountWidgetElem = thisProduct.element.querySelector(select.menuProduct.amountWidget);
     }
 
     initAccordion() {
@@ -195,44 +206,117 @@
         }
 
         // update calculated price in the HTML
+        price *= thisProduct.amountWidget.value;
         thisProduct.priceElem.innerHTML = price;
 
       }
     }
+  }
+  class amountWidget {
+    constructor(element) {
+      const thisWidget = this;
 
+      console.log('amountWidget:', thisWidget);
+      console.log('constructor arguments:', element);
+
+      thisWidget.getElements(element);
+      thisWidget.initActions();
     }
 
-    const app = {
+    getElements(element) {
+      const thisWidget = this;
 
-      initData: function () {
-        const thisApp = this;
-        thisApp.data = dataSource;
-      },
+      thisWidget.element = element;
+      thisWidget.input = thisWidget.element.querySelector(select.widgets.amount.input);
+      thisWidget.linkDecrease = thisWidget.element.querySelector(select.widgets.amount.linkDecrease);
+      thisWidget.linkIncrease = thisWidget.element.querySelector(select.widgets.amount.linkIncrease);
+      const inputValue = parseInt(thisWidget.input.value);
 
-      initMenu: function () {
-        const thisApp = this;
-        console.log('thisApp.data', thisApp.data);
+      if (!isNaN(inputValue)) {
+        thisWidget.setValue(inputValue);
+      } else {
+        thisWidget.setValue(settings.amountWidget.defaultValue);
+      }
+    }
 
-        for (let productData in thisApp.data.products) {
-          new Product(productData, thisApp.data.products[productData]);
-        }
-      },
+    setValue(value) {
+      const thisWidget = this;
 
-      init: function () {
-        const thisApp = this;
-        console.log('*** App starting ***');
-        console.log('thisApp:', thisApp);
-        console.log('classNames:', classNames);
-        console.log('settings:', settings);
-        console.log('templates:', templates);
+      const newValue = parseInt(value);
 
-        thisApp.initData();
-        thisApp.initMenu();
+      // * todo Add validation
+
+      /* TODO: Add validation */
+      if (thisWidget.value !== newValue && !isNaN(newValue) &&
+        newValue >= settings.amountWidget.defaultMin &&
+        newValue <= settings.amountWidget.defaultMax) {
+        thisWidget.value = newValue;
+      }
 
 
-      },
-    };
+      thisWidget.input.value = thisWidget.value;
+      thisWidget.announce();
+    }
+
+    initActions() {
+      const thisWidget = this;
+
+      // 1. Слухаємо зміну в input
+      thisWidget.input.addEventListener('change', function () {
+        thisWidget.setValue(thisWidget.input.value);
+      });
+
+      // 2. Мінус кнопка
+      thisWidget.linkDecrease.addEventListener('click', function (event) {
+        event.preventDefault();
+        thisWidget.setValue(thisWidget.value - 1);
+      });
+
+      // 3. Плюс кнопка
+      thisWidget.linkIncrease.addEventListener('click', function (event) {
+        event.preventDefault();
+        thisWidget.setValue(thisWidget.value + 1);
+      });
+    }
+    announce() {
+      const thisWidget = this;
+
+      const event = new Event('updated');
+      thisWidget.element.dispatchEvent(event);
+    }
+  }
+
+  const app = {
+
+    initData: function () {
+      const thisApp = this;
+      thisApp.data = dataSource;
+    },
+
+    initMenu: function () {
+      const thisApp = this;
+      console.log('thisApp.data', thisApp.data);
+
+      for (let productData in thisApp.data.products) {
+        new Product(productData, thisApp.data.products[productData]);
+      }
+    },
+
+    init: function () {
+      const thisApp = this;
+      console.log('*** App starting ***');
+      console.log('thisApp:', thisApp);
+      console.log('classNames:', classNames);
+      console.log('settings:', settings);
+      console.log('templates:', templates);
+
+      thisApp.initData();
+      thisApp.initMenu();
+
+
+    },
+  };
 
   app.init();
-  }
+}
 
